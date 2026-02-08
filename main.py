@@ -92,8 +92,14 @@ def run(
     if not skip_embeddings:
         embedder = SigLIPEmbedder()
 
-    # 3. Supabase client
-    supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+    # 3. Supabase client (only when not dry-run)
+    supabase: Optional[Client] = None
+    if not dry_run:
+        if not SUPABASE_KEY:
+            raise ValueError(
+                "SUPABASE_SERVICE_KEY is required. Set it in .env or as environment variable."
+            )
+        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
     success = 0
     failed = 0
@@ -121,6 +127,7 @@ def run(
                 continue
 
             # Upsert (on conflict: source, product_url)
+            assert supabase is not None
             supabase.table("products").upsert(
                 record,
                 on_conflict="source, product_url",
