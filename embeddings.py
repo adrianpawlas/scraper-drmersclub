@@ -8,7 +8,7 @@ from typing import List, Optional
 import requests
 import torch
 from PIL import Image
-from transformers import AutoProcessor, AutoTokenizer, SiglipModel
+from transformers import SiglipImageProcessor, SiglipModel, SiglipTokenizer
 
 from config import EMBEDDING_DIM, SIGLIP_MODEL
 
@@ -21,8 +21,8 @@ class SigLIPEmbedder:
     def __init__(self):
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         logger.info(f"Loading SigLIP model {SIGLIP_MODEL} on {self.device}...")
-        self.processor = AutoProcessor.from_pretrained(SIGLIP_MODEL)
-        self.tokenizer = AutoTokenizer.from_pretrained(SIGLIP_MODEL)
+        self.image_processor = SiglipImageProcessor.from_pretrained(SIGLIP_MODEL)
+        self.tokenizer = SiglipTokenizer.from_pretrained(SIGLIP_MODEL)
         self.model = SiglipModel.from_pretrained(SIGLIP_MODEL).to(self.device)
         self.model.eval()
         logger.info(f"Model loaded. Output dim must match Supabase vector column ({EMBEDDING_DIM}).")
@@ -48,7 +48,7 @@ class SigLIPEmbedder:
             return None
 
         try:
-            inputs = self.processor(images=image, return_tensors="pt").to(self.device)
+            inputs = self.image_processor(images=image, return_tensors="pt").to(self.device)
             with torch.no_grad():
                 outputs = self.model.get_image_features(**inputs)
 
