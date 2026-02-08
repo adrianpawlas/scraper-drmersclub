@@ -1,0 +1,38 @@
+name: Run DRMERS CLUB Scraper
+
+on:
+  schedule:
+    # Run daily at 00:00 UTC (adjust for your timezone: e.g. 23:00 UTC = midnight CET)
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+    # Allow manual trigger from GitHub Actions tab
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120  # Full run with embeddings can take ~30-60 min
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Cache Hugging Face models
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: siglip-${{ hashFiles('requirements.txt') }}
+          restore-keys: siglip-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run scraper
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: python main.py
