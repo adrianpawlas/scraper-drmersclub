@@ -19,7 +19,7 @@ BRAND = "Drmers Club"
 SIGLIP_MODEL = "google/siglip-base-patch16-384"
 EMBEDDING_DIM = 768  # Must match Supabase vector column dimension
 
-# Supabase (set via env or .env; for GitHub Actions use repository secrets)
+# Supabase (set SUPABASE_SERVICE_KEY in .env locally; add as repo secret for GitHub Actions)
 SUPABASE_URL = os.getenv("SUPABASE_URL", "https://yqawmzggcgpeyaaynrjk.supabase.co")
 SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_KEY", os.getenv("SUPABASE_KEY"))
 
