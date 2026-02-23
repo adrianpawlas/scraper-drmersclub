@@ -3,7 +3,8 @@
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
+# override=False: CI env vars (e.g. GitHub Actions secrets) are not overwritten by .env
+load_dotenv(override=False)
 
 # Scraper settings
 BASE_URL = "https://drmersclub.com"
@@ -11,8 +12,8 @@ COLLECTION_URL = f"{BASE_URL}/collections/shop-all"
 PRODUCTS_JSON_URL = f"{COLLECTION_URL}/products.json"
 PRODUCTS_PER_PAGE = 250
 
-# Brand & source
-SOURCE = "scraper"
+# Brand & source (must be unique per scraper to avoid cross-scraper collisions)
+SOURCE = "drmersclub"
 BRAND = "Drmers Club"
 
 # Embedding model (siglip-base outputs 768-dim; "384" = image resolution)

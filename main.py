@@ -1,6 +1,7 @@
 """
 DRMERS CLUB Full Scraper
 Fetches products, generates embeddings, imports to Supabase.
+Uses PostgREST HTTP for reliable CI imports and smart sync (no overwrite, delete stale).
 """
 
 import json
@@ -9,9 +10,8 @@ import sys
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from supabase import create_client, Client
-
-from config import EMBEDDING_DIM, SUPABASE_KEY, SUPABASE_URL
+from config import EMBEDDING_DIM, SOURCE, SUPABASE_KEY, SUPABASE_URL
+from db import SupabaseREST
 from embeddings import SigLIPEmbedder
 from scraper import fetch_all_products, transform_product
 
@@ -92,17 +92,9 @@ def run(
     if not skip_embeddings:
         embedder = SigLIPEmbedder()
 
-    # 3. Supabase client (only when not dry-run)
-    supabase: Optional[Client] = None
-    if not dry_run:
-        if not SUPABASE_KEY:
-            raise ValueError(
-                "SUPABASE_SERVICE_KEY is required. Set it in .env or as environment variable."
-            )
-        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-
-    success = 0
-    failed = 0
+    # 3. Process all products (transform, embed, prepare records)
+    records: List[Dict[str, Any]] = []
+    process_failed = 0
 
     for i, raw in enumerate(raw_products):
         try:
@@ -120,26 +112,54 @@ def run(
                 info_embedding = None
 
             record = prepare_db_record(product, image_embedding, info_embedding)
+            records.append(record)
 
             if dry_run:
-                logger.info(f"[DRY RUN] Would upsert: {product['title'][:50]}...")
-                success += 1
-                continue
+                logger.info(f"[DRY RUN] Would import: {product['title'][:50]}...")
 
-            # Upsert (on conflict: source, product_url)
-            assert supabase is not None
-            supabase.table("products").upsert(
-                record,
-                on_conflict="source, product_url",
-            ).execute()
-            success += 1
-            logger.info(f"[{i+1}/{len(raw_products)}] Imported: {product['title'][:50]}...")
+            if (i + 1) % 50 == 0:
+                logger.info(f"Processed {i + 1}/{len(raw_products)} products...")
 
         except Exception as e:
-            failed += 1
+            process_failed += 1
             logger.error(f"Failed product {raw.get('id')}: {e}", exc_info=True)
 
-    logger.info(f"Done. Success: {success}, Failed: {failed}")
+    logger.info(f"Processed {len(records)} products ({process_failed} failed during processing)")
+
+    if dry_run:
+        logger.info(f"[DRY RUN] Would import {len(records)} products, skip DB writes")
+        return
+
+    if not records:
+        logger.error("No products to import. Exiting with error.")
+        sys.exit(1)
+
+    # 4. Smart sync: insert new only (no overwrite), then delete stale
+    if not SUPABASE_KEY:
+        raise ValueError(
+            "SUPABASE_SERVICE_KEY is required. Set it in .env or as environment variable."
+        )
+    db = SupabaseREST(SUPABASE_URL, SUPABASE_KEY)
+
+    # Insert new products only; existing ones stay untouched (resolution=ignore-duplicates)
+    inserted, insert_failed = db.upsert_new_only(records)
+    logger.info(f"Import: {inserted} products written, {insert_failed} failed")
+
+    # Remove products no longer in catalog (stale)
+    keep_ids = [r["id"] for r in records]
+    deleted, delete_errors = db.delete_stale_products(SOURCE, keep_ids)
+    if deleted:
+        logger.info(f"Removed {deleted} stale products (no longer in catalog)")
+    if delete_errors:
+        logger.warning(f"Delete had {delete_errors} errors")
+
+    total_success = inserted
+    total_failed = process_failed + insert_failed
+    logger.info(f"Done. Success: {total_success}, Failed: {total_failed}")
+
+    if total_success == 0:
+        logger.error("No products were imported. Exiting with error.")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
