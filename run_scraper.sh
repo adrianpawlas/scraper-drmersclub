@@ -57,5 +57,14 @@ cd "$PROJECT_DIR"
     exit $EXIT_CODE
 } 2>&1 | tee "$LOG_FILE"
 
+# Capture the exit code from the subshell (PIPESTATUS[0] is the exit code of the first command in the pipe)
+EXIT_CODE=${PIPESTATUS[0]}
+
 # Cleanup: keep only the last 30 log files
-find "$LOG_DIR" -name 'run_*.log' -type f | sort | head -n -30 | xargs -r rm
+# macOS ls doesn't support the -v flag well, so use a portable approach
+log_count=$( (ls -1 "$LOG_DIR"/run_*.log 2>/dev/null) | wc -l | tr -d ' ')
+if [ "$log_count" -gt 30 ]; then
+    (ls -t "$LOG_DIR"/run_*.log 2>/dev/null) | tail -n +31 | xargs -r rm
+fi
+
+exit $EXIT_CODE
