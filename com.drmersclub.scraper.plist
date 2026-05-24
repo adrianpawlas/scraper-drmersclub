@@ -22,10 +22,10 @@
             <key>Minute</key>
             <integer>0</integer>
         </dict>
-        <!-- Saturday at 5:00 AM -->
+        <!-- Saturday at 5:00 AM (launchd: Sun=1, Mon=2, ..., Fri=6, Sat=7) -->
         <dict>
             <key>Weekday</key>
-            <integer>6</integer>
+            <integer>7</integer>
             <key>Hour</key>
             <integer>5</integer>
             <key>Minute</key>

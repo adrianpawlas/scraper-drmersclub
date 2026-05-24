@@ -1,0 +1,47 @@
+==========================================
+ Drmers Club Scraper — Automated Run
+ Started at: Sun May 24 21:55:39 CEST 2026
+ Directory:  /Users/adrianpawlas/Finds/Scrapers/scraper-drmersclub
+==========================================
+
+Python: Python 3.14.3
+
+2026-05-24 21:55:39 [INFO] drmers-scraper: ============================================================
+2026-05-24 21:55:39 [INFO] drmers-scraper: STEP 1: Fetching products from Drmers Club
+2026-05-24 21:55:39 [INFO] drmers-scraper: ============================================================
+2026-05-24 21:55:39 [INFO] scraper: Fetching exchange rates...
+2026-05-24 21:55:40 [INFO] scraper: Exchange rates: {'EUR': 0.624, 'USD': 0.724, 'GBP': 0.539, 'CZK': 15.16, 'PLN': 2.65, 'AUD': 1.02, 'NZD': 1.24, 'SGD': 0.927}
+2026-05-24 21:55:40 [INFO] scraper: Fetching all products from collection...
+2026-05-24 21:55:40 [INFO] scraper: Fetching products page 1...
+2026-05-24 21:55:41 [INFO] scraper:   Got 221 products on page 1
+2026-05-24 21:55:41 [INFO] scraper: Total products fetched: 221
+2026-05-24 21:55:41 [INFO] scraper: Fetched 221 raw products
+2026-05-24 21:55:41 [INFO] scraper: Processing products...
+2026-05-24 21:55:41 [INFO] scraper:   Processed 50/221 products
+2026-05-24 21:55:41 [INFO] scraper:   Processed 100/221 products
+2026-05-24 21:55:41 [INFO] scraper:   Processed 150/221 products
+2026-05-24 21:55:41 [INFO] scraper:   Processed 200/221 products
+2026-05-24 21:55:41 [INFO] scraper: Processed 221 products total
+2026-05-24 21:55:41 [INFO] drmers-scraper: Limiting to 2 products as requested
+2026-05-24 21:55:41 [INFO] drmers-scraper: Saved 2 products to data/products.json
+2026-05-24 21:55:41 [INFO] drmers-scraper: Step 1 complete: 2 products fetched and processed
+2026-05-24 21:55:41 [INFO] drmers-scraper: ============================================================
+2026-05-24 21:55:41 [INFO] drmers-scraper: STEP 3: Importing 2 products to Supabase
+2026-05-24 21:55:41 [INFO] drmers-scraper: ============================================================
+2026-05-24 21:55:41 [INFO] supabase_import: Initializing Supabase client...
+2026-05-24 21:55:41 [INFO] httpx: HTTP Request: GET https://yqawmzggcgpeyaaynrjk.supabase.co/rest/v1/products?select=id&limit=1 "HTTP/2 200 OK"
+2026-05-24 21:55:41 [INFO] supabase_import: Supabase connection successful.
+2026-05-24 21:55:41 [INFO] httpx: HTTP Request: GET https://yqawmzggcgpeyaaynrjk.supabase.co/rest/v1/products?select=id "HTTP/2 200 OK"
+2026-05-24 21:55:41 [INFO] supabase_import: Found 1000 existing products in table
+2026-05-24 21:55:41 [INFO] supabase_import: Importing 2 products to Supabase in batches of 25...
+2026-05-24 21:55:41 [INFO] supabase_import: Batch 1/1: products 1-2
+2026-05-24 21:55:42 [INFO] httpx: HTTP Request: POST https://yqawmzggcgpeyaaynrjk.supabase.co/rest/v1/products?on_conflict=id&columns=%22second_hand%22%2C%22price%22%2C%22affiliate_url%22%2C%22country%22%2C%22id%22%2C%22info_embedding%22%2C%22size%22%2C%22compressed_image_url%22%2C%22category%22%2C%22metadata%22%2C%22image_embedding%22%2C%22sale%22%2C%22other%22%2C%22title%22%2C%22source%22%2C%22created_at%22%2C%22brand%22%2C%22product_url%22%2C%22additional_images%22%2C%22gender%22%2C%22description%22%2C%22tags%22%2C%22image_url%22 "HTTP/2 200 OK"
+2026-05-24 21:55:42 [INFO] supabase_import:   Batch import: 2 products upserted successfully
+2026-05-24 21:55:42 [INFO] supabase_import: Import complete: 2 succeeded, 0 failed
+2026-05-24 21:55:42 [INFO] drmers-scraper: Step 3 complete: 2 imported, 0 failed
+2026-05-24 21:55:42 [INFO] drmers-scraper: Total time: 2.4 seconds
+
+==========================================
+ Run finished at: Sun May 24 21:55:42 CEST 2026
+ Exit code: 0
+==========================================
