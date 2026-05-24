@@ -13,6 +13,19 @@ from typing import Any
 import requests
 import torch
 from PIL import Image
+
+# Check for SentencePiece upfront — it's required by SigLIP's tokenizer
+# and missing it produces a cryptic error deep in transformers.
+# We validate it's available before importing AutoModel/AutoProcessor.
+try:
+    import sentencepiece  # noqa: F401
+except ImportError:
+    raise ImportError(
+        "The 'sentencepiece' library is required for the SigLIP tokenizer.\n"
+        "Install it with: pip install sentencepiece\n"
+        "Or add 'sentencepiece' to your requirements.txt / pyproject.toml."
+    )
+
 from transformers import AutoModel, AutoProcessor
 
 from config import (

@@ -28,6 +28,11 @@ jobs:
         with:
           python-version: '3.14'
 
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libsentencepiece-dev
+
       - name: Cache Python packages
         uses: actions/cache@v4
         with:
@@ -54,6 +59,7 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          HF_HOME: /home/runner/.cache/huggingface
         run: |
           ARGS=""
           if [ -n "${{ github.event.inputs.limit }}" ]; then
@@ -62,4 +68,14 @@ jobs:
           if [ "${{ github.event.inputs.skip-embedding }}" = "true" ]; then
             ARGS="$ARGS --skip-embedding"
           fi
-          python main.py $ARGS
+
+          # Retry logic: up to 2 attempts on failure
+          for i in 1 2; do
+            echo "--- Run attempt $i ---"
+            python main.py $ARGS && EXIT_CODE=0 && break || EXIT_CODE=$?
+            if [ $i -eq 1 ]; then
+              echo "Attempt $i failed (exit $EXIT_CODE). Retrying in 30s..."
+              sleep 30
+            fi
+          done
+          exit $EXIT_CODE
