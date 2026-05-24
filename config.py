@@ -22,11 +22,16 @@ PRODUCT_DETAILS_URL = f"{STORE_URL}/products/{{handle}}.json"
 PRODUCTS_PER_PAGE = 250
 
 # Supabase
-SUPABASE_URL = os.getenv("SUPABASE_URL", "https://yqawmzggcgpeyaaynrjk.supabase.co")
-SUPABASE_KEY = os.getenv(
-    "SUPABASE_KEY",
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlxYXdtemdnY2dwZXlhYXlucmprIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NTAxMDkyNiwiZXhwIjoyMDcwNTg2OTI2fQ.XtLpxausFriraFJeX27ZzsdQsFv3uQKXBBggoz6P4D4",
-)
+# NOTE: Credentials must be set via environment variables (SUPABASE_URL, SUPABASE_KEY).
+# These are provided by GitHub Actions Secrets when run via CI/CD, or via .env file for local runs.
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+
+if not SUPABASE_URL or not SUPABASE_KEY:
+    raise RuntimeError(
+        "SUPABASE_URL and SUPABASE_KEY must be set via environment variables or .env file"
+    )
+
 SUPABASE_TABLE = "products"
 
 # Embedding model
