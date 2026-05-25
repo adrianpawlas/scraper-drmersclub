@@ -53,5 +53,17 @@ DOWNLOAD_TIMEOUT = 60
 MAX_RETRIES = 3
 RETRY_DELAY = 2
 
-# Database batch size
-BATCH_SIZE = 25
+# Database batch size (number of products per upsert batch)
+BATCH_SIZE = 50
+
+# Delay between individual embedding API calls (seconds)
+EMBEDDING_DELAY = 0.5
+
+# Max retries for a failed upsert batch
+MAX_UPSERT_RETRIES = 3
+
+# Number of consecutive missed scrape runs before a product is deleted
+STALE_RUNS_BEFORE_DELETE = 2
+
+# Path for logging failed batch products
+FAILED_BATCHES_LOG = "data/failed_batches.log"

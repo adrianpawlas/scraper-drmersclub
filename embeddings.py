@@ -31,6 +31,7 @@ from transformers import AutoModel, AutoProcessor
 from config import (
     DOWNLOAD_TIMEOUT,
     EMBEDDING_DIM,
+    EMBEDDING_DELAY,
     EMBEDDING_MODEL_ID,
     MAX_RETRIES,
     REQUEST_TIMEOUT,
@@ -171,12 +172,25 @@ class EmbeddingGenerator:
     def embed_products_batch(
         self, products: list[dict[str, Any]]
     ) -> list[dict[str, Any]]:
-        """Generate embeddings for a batch of products."""
+        """
+        Generate embeddings for a batch of products.
+        Adds a {EMBEDDING_DELAY}s delay between each product to avoid overwhelming the endpoint.
+        Only generates embeddings for products that don't already have them.
+        """
         results = []
         for i, product in enumerate(products):
             try:
-                embedded = self.embed_product(product)
-                results.append(embedded)
+                # Skip products that already have embeddings (e.g., copied from existing DB)
+                if product.get("image_embedding") and product.get("info_embedding"):
+                    logger.debug(f"  Skipping (already has embeddings): {product.get('title', '')}")
+                    results.append(product)
+                else:
+                    embedded = self.embed_product(product)
+                    results.append(embedded)
+                    # Staggered delay between embedding API calls
+                    if i < len(products) - 1:
+                        time.sleep(EMBEDDING_DELAY)
+
                 if (i + 1) % 10 == 0:
                     logger.info(f"  Embedded {i + 1}/{len(products)} products")
             except Exception as e:
